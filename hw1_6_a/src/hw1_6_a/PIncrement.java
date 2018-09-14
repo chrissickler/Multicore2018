@@ -43,14 +43,29 @@ public class PIncrement
 		{
 			comp[i] = new PetersonAlgorithm(i);
 		}
+		int mod = 1200000 % numThreads;
 		for(int i =0;i<numThreads;i++)
 		{
-			if(i==numThreads-1)//this is not completely even but I believe negligible? TODO: Chris
-				t[i] = new MyThread(i,height,1200000/numThreads + (1200000%numThreads));
+			if(mod!=0)
+			{
+				t[i] = new MyThread(i,height,1200000/numThreads + 1);
+				mod--;
+			}
 			else
 				t[i] = new MyThread(i,height,1200000/numThreads);
 		}
-		return 0;
+		
+		for(int i=0;i<t.length;i++)
+		{
+			t[i].run();
+		}
+		while(ctot!=1200000)
+		{}
+		for(int i=0;i<t.length;i++)
+		{
+		}
+		return ctot;
+		
 	}
 	
 	static class MyThread extends Thread
@@ -116,9 +131,7 @@ public class PIncrement
 		public void requestCS(int pid, int role){
             turn[id] = role;
             while(turn[id]==role && testOpponents(pid,id))
-            {
-            	
-            }
+            {}             
             
 		}
 		public void releaseCS(int id)
@@ -131,16 +144,23 @@ public class PIncrement
 	static boolean testOpponents(int pid,int compid)//wait for all flags of potential opponents in x are <k;
 	{
 		
-		if(threads<3)
+		if(threads==1)
 		{
-			return true;
+			return false;
 		}
-		if(threads <5)
+		if(threads < 3)
+		{
+			if(pid==1)
+				return flag[0]==1;
+			else
+				return flag[1]==1;
+		}
+		if(threads < 5)
 		{
 			if(compid==0)
 			{
 			   for(int i=0;i<threads;i++)
-			   {
+			   {				   
 				   if(flag[i]>=flag[pid] && i!=pid)
 					   return true;
 				   

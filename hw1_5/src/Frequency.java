@@ -7,6 +7,10 @@ public class Frequency {
 	
     public static int parallelFreq(int x, int[] A, int numThreads) throws Exception {
         // your implementation goes here. 
+    	if(numThreads<1)
+    	{
+    		return -1;
+    	}
     	if(A==null)
     	{
     		return -1;
@@ -15,10 +19,7 @@ public class Frequency {
     	{
     		return 0;    		
     	}
-    	if(numThreads<1)
-    	{
-    		return -1;
-    	}
+    	
     	ExecutorService exserv = Executors.newFixedThreadPool(numThreads);
     	ArrayList<Future<Integer>> list = new ArrayList<Future<Integer>>();
     	CallableThread [] threads = new CallableThread[numThreads];
