@@ -36,8 +36,7 @@ public class FineGrainedListSet implements ListSet {
     	curr.lock.lock();
     	try{
     		
-    	
-    	if(curr.value==value || (curr.next!=null && curr.next.value==value))
+    	if((prev!=null && prev.value>=value) || curr.value==value || (curr.next!=null && curr.next.value<=value))
     	    return false;
     	if(curr.value>value)
     		continue;
