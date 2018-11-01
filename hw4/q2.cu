@@ -10,13 +10,13 @@
 #define BLOCK_WIDTH 32
 
 __global__ void countG(int *a, int *b, int n, int *mutex) {
-    int index = threadIdx.x + blockIdx.x * blockDim.x;
-    int stride = gridDim.x * blockDim.x;
-    int offset = 0;
-
-    while (index + offset < n) {
-        int val = a[index+offset]/100;
-        
+    int index = 0;
+    while (index < n) {
+        int val = a[index]/100;
+        if (val == threadIdx.x) {
+            b[val]++;
+        }
+        index++;
     }
 }
 
@@ -108,17 +108,6 @@ int main(int argc, char* argv[]) {
         countA[val]++;
     }
 
- 
-    std::cout<<"count0: "<<countA[0]<<std::endl;
-    std::cout<<"count1: "<<countA[1]<<std::endl;
-    std::cout<<"count2: "<<countA[2]<<std::endl;
-    std::cout<<"count3: "<<countA[3]<<std::endl;
-    std::cout<<"count4: "<<countA[4]<<std::endl;
-    std::cout<<"count5: "<<countA[5]<<std::endl;
-    std::cout<<"count6: "<<countA[6]<<std::endl;
-    std::cout<<"count7: "<<countA[7]<<std::endl;
-    std::cout<<"count8: "<<countA[8]<<std::endl;
-    std::cout<<"count9: "<<countA[9]<<std::endl;
     
     
     int *d_B;
@@ -150,17 +139,7 @@ int main(int argc, char* argv[]) {
 
     //copy from host to device
     h_A = &arr[0];
-    /*
-    std::cout<<"0: "<<h_A[0]<<std::endl;
-    std::cout<<"1: "<<h_A[1]<<std::endl;
-    std::cout<<"2: "<<h_A[2]<<std::endl;
-    std::cout<<"3: "<<h_A[3]<<std::endl;
-    std::cout<<"4: "<<h_A[4]<<std::endl;
-    std::cout<<"5: "<<h_A[5]<<std::endl;
-    std::cout<<"6: "<<h_A[6]<<std::endl;
-    std::cout<<"7: "<<h_A[7]<<std::endl;
-    std::cout<<"8: "<<h_A[8]<<std::endl;
-    std::cout<<"9: "<<h_A[9]<<std::endl;*/
+
     cudaMemcpy(d_A,h_A,N*sizeof(int),cudaMemcpyHostToDevice);
     cudaMemset(d_mutex, 0, sizeof(int));
 
@@ -171,22 +150,23 @@ int main(int argc, char* argv[]) {
     }
     cudaMemcpy(d_B,B,10*sizeof(int),cudaMemcpyHostToDevice);*/
 
+    countG<<<1,10>>>(d_A,d_B,N,d_mutex);
+
+    cudaMemcpy(B,d_B,10*sizeof(int),cudaMemcpyDeviceToHost);
+
+    q2af << B[0];
+    for (int k = 1; k < 10; k++) {
+        q2af << ", " << B[k];
+    }
+
+
+
     count<<<NUM_BLOCKS,BLOCK_WIDTH>>>(d_A,d_B,N,d_mutex);
 
     cudaMemcpy(B,d_B,10*sizeof(int),cudaMemcpyDeviceToHost);
 
     //report results
-    /*
-    std::cout<<"0-99: "<<B[0]<<std::endl;
-    std::cout<<"100-199: "<<B[1]<<std::endl;
-    std::cout<<"200-299: "<<B[2]<<std::endl;
-    std::cout<<"300-399: "<<B[3]<<std::endl;
-    std::cout<<"400-499: "<<B[4]<<std::endl;
-    std::cout<<"500-599: "<<B[5]<<std::endl;
-    std::cout<<"600-699: "<<B[6]<<std::endl;
-    std::cout<<"700-799: "<<B[7]<<std::endl;
-    std::cout<<"800-899: "<<B[8]<<std::endl;
-    std::cout<<"900-999: "<<B[9]<<std::endl;*/
+    
 
     q2bf << B[0];
     for (int k = 1; k < 10; k++) {
@@ -205,26 +185,16 @@ int main(int argc, char* argv[]) {
         q2cf << ", " << C[k];
     }
 
-    /*
-    std::cout<<"0-99: "<<C[0]<<std::endl;
-    std::cout<<"100-199: "<<C[1]<<std::endl;
-    std::cout<<"200-299: "<<C[2]<<std::endl;
-    std::cout<<"300-399: "<<C[3]<<std::endl;
-    std::cout<<"400-499: "<<C[4]<<std::endl;
-    std::cout<<"500-599: "<<C[5]<<std::endl;
-    std::cout<<"600-699: "<<C[6]<<std::endl;
-    std::cout<<"700-799: "<<C[7]<<std::endl;
-    std::cout<<"800-899: "<<C[8]<<std::endl;
-    std::cout<<"900-999: "<<C[9]<<std::endl;*/
 
 
-    free(h_B);
+    //free(h_B);
+    free(h_A);
+    free(B);
+    free(C);
     cudaFree(d_B);
     cudaFree(d_A);
+    cudaFree(d_C);
     cudaFree(d_mutex);
-
-    // launch the kernel
-    //count<<<NUM_BLOCKS, BLOCK_WIDTH>>>(arr,b);
 
     // force the printf()s to flush
     //cudaDeviceSynchronize();
