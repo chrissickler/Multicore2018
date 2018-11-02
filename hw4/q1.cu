@@ -46,7 +46,7 @@ __global__ void minA_kernel(int *A, int *min, int *lock, int size){
 __global__ void lastDigit_kernel(int* A, int* B, int size)
 {
   int index = threadIdx.x + blockIdx.x*blockDim.x;
-  int stride = gridDim.x + blockDim.x;
+  int stride = gridDim.x * blockDim.x;
   int offset = 0;
   while(index  + offset < size)
   {
@@ -114,8 +114,11 @@ int main(int argc, char* argv[]){
   minA_kernel<<< gridSize, blockSize>>>(d_A, d_min, d_lock, adjustedSize);
   
   cudaMemcpy(h_min, d_min, sizeof(int), cudaMemcpyDeviceToHost);
-         
-  cout<<"Min is"<<*h_min;
+  ofstream myfile;
+  myfile.open("q1a.txt");
+  
+   
+  myfile<<"Min is"<<*h_min;
   
   int min = 100000;
   for(int i=0;i<size;i++)
@@ -125,23 +128,20 @@ int main(int argc, char* argv[]){
     }
   }
 
-  cout<<"Non Parallel Min is " <<min;
-  cout<<endl<<endl;
+  myfile<<"Non Parallel Min is " <<min;
+  myfile.close();
+  myfile.open("q1b.txt");
 
   dim3 gridSize2 = size/32 +1;
   dim3 blockSize2 = 32;
   lastDigit_kernel<<<gridSize2, blockSize2>>>(d_A,d_B,size);
   cudaMemcpy(B,d_B,size*sizeof(int),cudaMemcpyDeviceToHost);
-
-  for(int i=0;i<size;i++)
+  for(int i=0;i<size-1;i++)
   {
-    cout<<A[i]<<",";
+    myfile<<B[i]<<", ";
   }
-  cout<<endl;
-  for(int i=0;i<size;i++)
-  {
-    cout<<B[i]<<",";
-  }
+  myfile<<B[size-1];
+  myfile.close();
 
   /*free(A);
   free(h_min);
